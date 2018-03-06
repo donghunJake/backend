@@ -1,0 +1,41 @@
+[
+  {
+    "company" : "ROMI",
+    "currentSales" : 85481200,
+    "previousSales" : 95555555,
+    "growth" : -43250,
+    "weeekData" : [{ "company": "R", "date": "2017-02-01", "sales": 100000 },
+      { "company": "R", "date": "2017-02-02", "sales": 200000 },
+      { "company": "R", "date": "2017-02-03", "sales": 300000 },
+      { "company": "R", "date": "2017-02-04", "sales": 400000 },
+      { "company": "R", "date": "2017-02-05", "sales": 300000 },
+      { "company": "R", "date": "2017-02-06", "sales": 200000 },
+      { "company": "R", "date": "2017-02-07", "sales": 100000 }]
+  },
+  {
+    "company" : "BEIGE",
+    "currentSales" : 85481200,
+    "previousSales" : 65320650,
+    "growth" : 43250,
+    "weeekData" : [{ "company": "R", "date": "2017-02-01", "sales": 100000 },
+      { "company": "R", "date": "2017-02-02", "sales": 200000 },
+      { "company": "R", "date": "2017-02-03", "sales": 300000 },
+      { "company": "R", "date": "2017-02-04", "sales": 400000 },
+      { "company": "R", "date": "2017-02-05", "sales": 300000 },
+      { "company": "R", "date": "2017-02-06", "sales": 200000 },
+      { "company": "R", "date": "2017-02-07", "sales": 100000 }]
+  },
+  {
+    "company" : "MOSS",
+    "currentSales" : 85481200,
+    "previousSales" : 65320650,
+    "growth" : 43250,
+    "weeekData" : [{ "company": "R", "date": "2017-02-01", "sales": 100000 },
+      { "company": "R", "date": "2017-02-02", "sales": 200000 },
+      { "company": "R", "date": "2017-02-03", "sales": 300000 },
+      { "company": "R", "date": "2017-02-04", "sales": 400000 },
+      { "company": "R", "date": "2017-02-05", "sales": 300000 },
+      { "company": "R", "date": "2017-02-06", "sales": 200000 },
+      { "company": "R", "date": "2017-02-07", "sales": 100000 }]
+  }
+]
