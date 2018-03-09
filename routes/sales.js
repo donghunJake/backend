@@ -4,28 +4,59 @@ var sales = require('../sales.json');
 var conn = require('../util/dbconnection');
 var DateUtil = require('../util/DateUtil');
 
-router.get('/', function (req, res, next) {
+router.get('/lastweek', function (req, res, next) {
 	var response = [];
 	
-	var previousWeek = DateUtil.previousweek();
-	var lastDate = DateUtil.lastday();
-	
+	var current = DateUtil.lastday();
+	var previous = DateUtil.previousweek();
+	console.log(previous, current);
 	conn.query("select brand, " +
-			"sum(case when date = ? then sale end) as previousWeek, " +
-			"sum(case when date = ? then sale end) as currentSales " +
-			"from statics where date =? or date = ? group by brand order by currentSales desc", 
-			[previousWeek, lastDate, previousWeek, lastDate], function(err, results) {
+			"sum(case when date = ? then sale end) as previous, " +
+			"sum(case when date = ? then sale end) as current " +
+			"from statics where date =? or date = ? group by brand order by current desc", 
+			[previous, current, previous, current], function(err, results) {
 		if(err){
 			console.log("Error : " + err);
 		}
 		
 		for (var i = 0; i < results.length; i++) {
 			var obj = {};
-			console.log(results[i].brand);
 			obj.company = results[i].brand;
-			obj.previousWeek = results[i].previousWeek;
-			obj.currentSales = results[i].currentSales;
-			obj.growthWeek = results[i].currentSales - results[i].previousWeek;
+			obj.previous = results[i].previous;
+			obj.current = results[i].current;
+			obj.growth = results[i].current - results[i].previous;
+			response.push(obj);
+		}
+		
+		res.send(response);
+	});
+});
+
+router.get('/lastyear', function (req, res, next) {
+	var response = [];
+	
+	var currentlastyear = DateUtil.lastdayofweekinlastyear();
+	var previouslastyear = DateUtil.lastweek(currentlastyear);
+	
+	var current = DateUtil.lastday();
+	var previous = DateUtil.lastweek(current);
+	
+	console.log(previouslastyear, currentlastyear, previous, current);
+	conn.query("select brand, " +
+			"sum(case when date between ? and ?  then sale end) as previous, " +
+			"sum(case when date between ? and ? then sale end) as current " +
+			"from statics where date between ? and ? or date between ? and ? group by brand order by current desc", 
+			[previouslastyear, currentlastyear, previous, current, previouslastyear, currentlastyear, previous, current], function(err, results) {
+		if(err){
+			console.log("Error : " + err);
+		}
+		
+		for (var i = 0; i < results.length; i++) {
+			var obj = {};
+			obj.company = results[i].brand;
+			obj.previous = results[i].previous;
+			obj.current = results[i].current;
+			obj.growth = results[i].current - results[i].previous;
 			response.push(obj);
 		}
 		
@@ -101,14 +132,14 @@ router.get('/point/last-day/:brand', function (req, res, next){
 
 router.get('/point/last-week', function (req, res, next) {
 	var lastDate = DateUtil.lastday();
-	var lastWeek = DateUtil.lastweek();
+	var lastWeek = DateUtil.lastweek(lastDate);
 	
 	resPointSale(res, lastWeek, lastDate);
 });
 
 router.get('/point/last-week/:brand', function (req, res, next) {
 	var lastDate = DateUtil.lastday();
-	var lastWeek = DateUtil.lastweek();
+	var lastWeek = DateUtil.lastweek(lastDate);
 	var brand = req.params.brand;
 	
 	resPointSale(res, lastWeek, lastDate, brand);
@@ -116,14 +147,14 @@ router.get('/point/last-week/:brand', function (req, res, next) {
 
 router.get('/point/last-month', function (req, res, next) {
 	var lastDate = DateUtil.lastday();
-	var lastMonth = DateUtil.lastmonth();
+	var lastMonth = DateUtil.lastmonth(lastDate);
 	
 	resPointSale(res, lastMonth, lastDate);
 });
 
 router.get('/point/last-month/:brand', function (req, res, next) {
 	var lastDate = DateUtil.lastday();
-	var lastMonth = DateUtil.lastmonth();
+	var lastMonth = DateUtil.lastmonth(lastDate);
 	var brand = req.params.brand;
 	
 	resPointSale(res, lastMonth, lastDate, brand);
@@ -196,14 +227,23 @@ function resRangeSale (res, start, end, brand) {
 
 router.get('/range/last-week/:brand', function (req, res, next){
 	var end = DateUtil.lastday();
-	var start = DateUtil.lastweek();
+	var start = DateUtil.lastweek(end);
 	var brand = req.params.brand;
 	resRangeSale(res, start, end, brand);
 });
 
 router.get('/range/last-month/:brand', function (req, res, next){
 	var end = DateUtil.lastday();
-	var start = DateUtil.lastmonth();
+	var start = DateUtil.lastmonth(end);
+	var brand = req.params.brand;
+	
+	resRangeSale(res, start, end, brand);
+});
+
+router.get('/range/last-month-year/:brand', function (req, res, next){
+	var end = DateUtil.lastdayofweekinlastyear();
+	var start = DateUtil.lastmonth(end);
+	
 	var brand = req.params.brand;
 	resRangeSale(res, start, end, brand);
 });
