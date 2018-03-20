@@ -9,7 +9,6 @@ router.get('/lastweek', function (req, res, next) {
 	
 	var current = DateUtil.lastday();
 	var previous = DateUtil.previousweek();
-	console.log(previous, current);
 	conn.query("select brand, " +
 			"sum(case when date = ? then sale end) as previous, " +
 			"sum(case when date = ? then sale end) as current " +
@@ -32,6 +31,40 @@ router.get('/lastweek', function (req, res, next) {
 	});
 });
 
+router.get('/lastweek/:date', function (req, res, next) {
+	var date = req.params.date;
+	
+	var response = [];
+	
+	var current = DateUtil.lastday();
+	var previous = DateUtil.previousweek(date);
+	
+	if (isValidDate(date)) {
+		conn.query("select brand, " +
+				"sum(case when date = ? then sale end) as previous, " +
+				"sum(case when date = ? then sale end) as current " +
+				"from statics where date =? or date = ? group by brand order by current desc", 
+				[previous, current, previous, current], function(err, results) {
+			if(err){
+				console.log("Error : " + err);
+			}
+			
+			for (var i = 0; i < results.length; i++) {
+				var obj = {};
+				obj.company = results[i].brand;
+				obj.previous = results[i].previous;
+				obj.current = results[i].current;
+				obj.growth = results[i].current - results[i].previous;
+				response.push(obj);
+			}
+			
+			res.send(response);
+		});
+	} else {
+		res.send("Date format Error!!");
+	}
+});
+
 router.get('/lastyear', function (req, res, next) {
 	var response = [];
 	
@@ -41,7 +74,6 @@ router.get('/lastyear', function (req, res, next) {
 	var current = DateUtil.lastday();
 	var previous = DateUtil.lastweek(current);
 	
-	console.log(previouslastyear, currentlastyear, previous, current);
 	conn.query("select brand, " +
 			"sum(case when date between ? and ?  then sale end) as previous, " +
 			"sum(case when date between ? and ? then sale end) as current " +

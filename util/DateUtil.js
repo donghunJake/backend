@@ -20,7 +20,7 @@ function getDataStr(myDate) {
 	return year + "-" + month + "-" + day;
 }
 
-DateUtil.lastday = function (){
+DateUtil.lastday = function (){ // 오늘보다 하루 전 날짜
 	var date = new Date();
 	var dayOfMonth = date.getDate();
 	date.setDate(dayOfMonth - 1);
@@ -43,12 +43,20 @@ DateUtil.lastweek = function() {  // 인자가 없을 경우 오늘 날짜에서
 	return getDataStr(date);
 };
 
-DateUtil.previousweek = function () {
-	var date = new Date();
+DateUtil.previousweek = function () { // 인자가 없을 경우 오늘 날짜에서 8일 전 있을 경우 인자 값 에서 7일 전 
+	var argLength = arguments.length;
+	var dayOfMonth = null;
 	
-	var dayOfMonth = date.getDate();
-	date.setDate(dayOfMonth - 8);
-
+	if (argLength === 0 ) {
+		date = new Date();
+		dayOfMonth = date.getDate();
+		date.setDate(dayOfMonth - 8);
+	} else if (argLength === 1) {
+		date = new Date(arguments[0]);
+		dayOfMonth = date.getDate();
+		date.setDate(dayOfMonth - 7);
+	}
+	
 	return getDataStr(date);
 };
 
