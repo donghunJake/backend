@@ -46,6 +46,7 @@ DateUtil.lastweek = function() {  // 인자가 없을 경우 오늘 날짜에서
 DateUtil.previousweek = function () { // 인자가 없을 경우 오늘 날짜에서 8일 전 있을 경우 인자 값 에서 7일 전 
 	var argLength = arguments.length;
 	var dayOfMonth = null;
+	var date = null;
 	
 	if (argLength === 0 ) {
 		date = new Date();
@@ -56,6 +57,21 @@ DateUtil.previousweek = function () { // 인자가 없을 경우 오늘 날짜�
 		dayOfMonth = date.getDate();
 		date.setDate(dayOfMonth - 7);
 	}
+	
+	return getDataStr(date);
+};
+
+DateUtil.firstDayMonth = function(myDate) {
+	var date = new Date(myDate);
+	date.setDate(1);
+	
+	return getDataStr(date);
+};
+
+DateUtil.firstDayYear = function(myDate) {
+	var date = new Date(myDate);
+	date.setDate(1);
+	date.setMonth(0);
 	
 	return getDataStr(date);
 };
@@ -104,6 +120,15 @@ DateUtil.lastdayofweekinlastyear = function() { // 전년 동일 주, 동일요�
 	
 	var gap = (weekCur - weekPre) * 7; // 주차 사이의 차이
 	date.setDate(dayOfMonth - gap);
+	
+	return getDataStr(date);
+};
+
+DateUtil.firstDayMonthLastYear = function(myDate) { // 12개월전의 달의 첫째 날짜
+	var date = new Date(myDate);
+	var monthOfYear = date.getMonth(); 
+	date.setDate(1);
+	date.setMonth(monthOfYear-11);
 	
 	return getDataStr(date);
 };

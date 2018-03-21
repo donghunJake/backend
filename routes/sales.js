@@ -65,10 +65,40 @@ router.get('/lastweek/:date', function (req, res, next) {
 	}
 });
 
+router.get('/lastmonth', function (req, res, next) {
+	var response = [];
+	
+	var currentlastyear = DateUtil.lastdayinlastyear();
+	var previouslastyear = DateUtil.firstDayMonth(currentlastyear);
+		
+	var current = DateUtil.lastday();
+	var previous = DateUtil.firstDayMonth(current);
+	conn.query("select brand, " +
+			"sum(case when date between ? and ?  then sale end) as previous, " +
+			"sum(case when date between ? and ? then sale end) as current " +
+			"from statics where date between ? and ? or date between ? and ? group by brand order by current desc", 
+			[previouslastyear, currentlastyear, previous, current, previouslastyear, currentlastyear, previous, current], function(err, results) {
+		if(err){
+			console.log("Error : " + err);
+		}
+		
+		for (var i = 0; i < results.length; i++) {
+			var obj = {};
+			obj.company = results[i].brand;
+			obj.previous = results[i].previous;
+			obj.current = results[i].current;
+			obj.growth = results[i].current - results[i].previous;
+			response.push(obj);
+		}
+		
+		res.send(response);
+	});
+});
+
 router.get('/lastyear', function (req, res, next) {
 	var response = [];
 	
-	var currentlastyear = DateUtil.lastdayofweekinlastyear();
+	var currentlastyear = DateUtil.lastdayinlastyear();
 	var previouslastyear = DateUtil.lastweek(currentlastyear);
 	
 	var current = DateUtil.lastday();
@@ -145,6 +175,54 @@ function resPointSale (res, start, end) {
 			obj.end = end;
 			response.push(obj);
 		}
+		res.send(response);
+	});
+}
+
+function resRangeSale (res, start, end, brand) {
+	var response = {};
+
+	conn.query("SELECT DATE_FORMAT(date,'%Y-%m-%d') date, sale FROM statics WHERE date BETWEEN ? AND ? AND brand = ?", [start, end, brand], function(err, results) {
+		if(err) {
+			console.log("Error : " + err);
+		}
+		
+		var sales = [];
+		for (var i = 0; i < results.length; i++) {
+			var obj = {};
+			obj.day = results[i].date;
+			obj.sale = results[i].sale;
+			sales.push(obj);
+		}
+		
+		response.brand = brand;
+		response.start = start;
+		response.end = end;
+		response.sales = sales;
+		res.send(response);
+	});
+}
+
+function resRangeGroupSale(res, start, end, brand) {
+	var response = {};
+
+	conn.query("SELECT DATE_FORMAT(date,'%Y-%m') month, sum(sale) sale FROM statics WHERE date BETWEEN ? AND ? AND brand = ? group by month", [start, end, brand], function(err, results) {
+		if(err) {
+			console.log("Error : " + err);
+		}
+		
+		var sales = [];
+		for (var i = 0; i < results.length; i++) {
+			var obj = {};
+			obj.day = results[i].month;
+			obj.sale = results[i].sale;
+			sales.push(obj);
+		}
+		
+		response.brand = brand;
+		response.start = start;
+		response.end = end;
+		response.sales = sales;
 		res.send(response);
 	});
 }
@@ -233,34 +311,11 @@ router.get('/point/:date/:brand', function (req, res, next) {
 	}
 });
 
-function resRangeSale (res, start, end, brand) {
-	var response = {};
-
-	conn.query("SELECT DATE_FORMAT(date,'%Y-%m-%d') date, sale FROM statics WHERE date BETWEEN ? AND ? AND brand = ?", [start, end, brand], function(err, results) {
-		if(err) {
-			console.log("Error : " + err);
-		}
-		
-		var sales = [];
-		for (var i = 0; i < results.length; i++) {
-			var obj = {};
-			obj.day = results[i].date;
-			obj.sale = results[i].sale;
-			sales.push(obj);
-		}
-		
-		response.brand = brand;
-		response.start = start;
-		response.end = end;
-		response.sales = sales;
-		res.send(response);
-	});
-}
-
 router.get('/range/last-week/:brand', function (req, res, next){
 	var end = DateUtil.lastday();
 	var start = DateUtil.lastweek(end);
 	var brand = req.params.brand;
+	
 	resRangeSale(res, start, end, brand);
 });
 
@@ -273,11 +328,43 @@ router.get('/range/last-month/:brand', function (req, res, next){
 });
 
 router.get('/range/last-month-year/:brand', function (req, res, next){
-	var end = DateUtil.lastdayofweekinlastyear();
+	var end = DateUtil.lastdayinlastyear();
 	var start = DateUtil.lastmonth(end);
-	
 	var brand = req.params.brand;
+	
 	resRangeSale(res, start, end, brand);
+});
+
+router.get('/range/this-year/:brand', function (req, res, next){
+	var end = DateUtil.lastday();
+	var start = DateUtil.firstDayYear(end);
+	var brand = req.params.brand;
+	
+	resRangeSale(res, start, end, brand);
+});
+
+router.get('/range/last-year/:brand', function (req, res, next){
+	var end = DateUtil.lastdayinlastyear();
+	var start = DateUtil.firstDayYear(end);
+	var brand = req.params.brand;
+	
+	resRangeSale(res, start, end, brand);
+});
+
+router.get('/range/this-year-sale-group-month/:brand', function (req, res, next){ // 금일부터 12개월 이전에 데이터를 월단위 그룹 Sale 매출
+	var end = DateUtil.lastday();
+	var start = DateUtil.firstDayMonthLastYear(end);
+	var brand = req.params.brand;
+	
+	resRangeGroupSale(res, start, end, brand);
+});
+
+router.get('/range/last-year-sale-group-month/:brand', function (req, res, next){ // 작년 오늘날짜부터 12개월 이전에 데이터를 월단위 그룹 Sale 매출
+	var end = DateUtil.lastdayinlastyear();
+	var start = DateUtil.firstDayMonthLastYear(end);
+	var brand = req.params.brand;
+	
+	resRangeGroupSale(res, start, end, brand);
 });
 
 router.get('/range/:date/:brand', function (req, res, next) {

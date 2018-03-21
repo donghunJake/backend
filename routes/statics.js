@@ -1,6 +1,5 @@
 var express = require('express');
 var router = express.Router();
-var statics = require('../statics.json');
 var conn = require('../util/dbconnection');
 var DateUtil = require('../util/DateUtil');
 
@@ -86,6 +85,166 @@ router.get('/:brand', function(req, res, next) {
 		
 		res.send(response);
 	});
+});
+
+function resRangeGroup(res, start, end, brand, mode) {
+	var response = {};
+	var query = null;
+	switch(mode) {
+	case "totalvisit" :
+		query = "SELECT DATE_FORMAT(date,'%Y-%m') month, sum(totalvisit) value FROM statics WHERE date BETWEEN ? AND ? AND brand = ? group by month";
+		break;
+	case "firstvisit" :
+		query = "SELECT DATE_FORMAT(date,'%Y-%m') month, sum(firstvisit) value FROM statics WHERE date BETWEEN ? AND ? AND brand = ? group by month";
+		break;
+	case "revisit" :
+		query = "SELECT DATE_FORMAT(date,'%Y-%m') month, sum(revisit) value FROM statics WHERE date BETWEEN ? AND ? AND brand = ? group by month";
+		break;
+	case "newmember" :
+		query = "SELECT DATE_FORMAT(date,'%Y-%m') month, sum(newmember) value FROM statics WHERE date BETWEEN ? AND ? AND brand = ? group by month";
+		break;
+	case "pv" :
+		query = "SELECT DATE_FORMAT(date,'%Y-%m') month, sum(pv) value FROM statics WHERE date BETWEEN ? AND ? AND brand = ? group by month";
+		break;
+	case "perman" :
+		query = "SELECT DATE_FORMAT(date,'%Y-%m') month, avg(perman) value FROM statics WHERE date BETWEEN ? AND ? AND brand = ? group by month";
+		break;
+	case "buyer" :
+		query = "SELECT DATE_FORMAT(date,'%Y-%m') month, avg(buyer) value FROM statics WHERE date BETWEEN ? AND ? AND brand = ? group by month";
+		break;
+	}
+
+	conn.query(query, [start, end, brand], function(err, results) {
+		if(err) {
+			console.log("Error : " + err);
+		}
+		
+		var values = [];
+		for (var i = 0; i < results.length; i++) {
+			var obj = {};
+			obj.day = results[i].month;
+			obj.value = results[i].value;
+			values.push(obj);
+		}
+		
+		response.brand = brand;
+		response.start = start;
+		response.end = end;
+		response.values = values;
+		res.send(response);
+	});
+}
+
+router.get('/range/this-year-totalvisit-group-month/:brand', function (req, res, next){ // 금일부터 12개월 이전에 데이터를 월단위 그룹 
+	var end = DateUtil.lastday();
+	var start = DateUtil.firstDayMonthLastYear(end);
+	var brand = req.params.brand;
+	
+	resRangeGroup(res, start, end, brand, "totalvisit");
+});
+
+router.get('/range/last-year-totalvisit-group-month/:brand', function (req, res, next){ // 작년 오늘날짜부터 12개월 이전에 데이터를 월단위 그룹
+	var end = DateUtil.lastdayinlastyear();
+	var start = DateUtil.firstDayMonthLastYear(end);
+	var brand = req.params.brand;
+	
+	resRangeGroup(res, start, end, brand, "totalvisit");
+});
+
+router.get('/range/this-year-firstvisit-group-month/:brand', function (req, res, next){ // 금일부터 12개월 이전에 데이터를 월단위 그룹 
+	var end = DateUtil.lastday();
+	var start = DateUtil.firstDayMonthLastYear(end);
+	var brand = req.params.brand;
+	
+	resRangeGroup(res, start, end, brand, "firstvisit");
+});
+
+router.get('/range/last-year-firstvisit-group-month/:brand', function (req, res, next){ // 작년 오늘날짜부터 12개월 이전에 데이터를 월단위 그룹
+	var end = DateUtil.lastdayinlastyear();
+	var start = DateUtil.firstDayMonthLastYear(end);
+	var brand = req.params.brand;
+	
+	resRangeGroup(res, start, end, brand, "firstvisit");
+});
+
+router.get('/range/this-year-revisit-group-month/:brand', function (req, res, next){ // 금일부터 12개월 이전에 데이터를 월단위 그룹 
+	var end = DateUtil.lastday();
+	var start = DateUtil.firstDayMonthLastYear(end);
+	var brand = req.params.brand;
+	
+	resRangeGroup(res, start, end, brand, "revisit");
+});
+
+router.get('/range/last-year-revisit-group-month/:brand', function (req, res, next){ // 작년 오늘날짜부터 12개월 이전에 데이터를 월단위 그룹
+	var end = DateUtil.lastdayinlastyear();
+	var start = DateUtil.firstDayMonthLastYear(end);
+	var brand = req.params.brand;
+	
+	resRangeGroup(res, start, end, brand, "revisit");
+});
+
+router.get('/range/this-year-newmember-group-month/:brand', function (req, res, next){ // 금일부터 12개월 이전에 데이터를 월단위 그룹 
+	var end = DateUtil.lastday();
+	var start = DateUtil.firstDayMonthLastYear(end);
+	var brand = req.params.brand;
+	
+	resRangeGroup(res, start, end, brand, "newmember");
+});
+
+router.get('/range/last-year-newmember-group-month/:brand', function (req, res, next){ // 작년 오늘날짜부터 12개월 이전에 데이터를 월단위 그룹
+	var end = DateUtil.lastdayinlastyear();
+	var start = DateUtil.firstDayMonthLastYear(end);
+	var brand = req.params.brand;
+	
+	resRangeGroup(res, start, end, brand, "newmember");
+});
+
+router.get('/range/this-year-pv-group-month/:brand', function (req, res, next){ // 금일부터 12개월 이전에 데이터를 월단위 그룹 
+	var end = DateUtil.lastday();
+	var start = DateUtil.firstDayMonthLastYear(end);
+	var brand = req.params.brand;
+	
+	resRangeGroup(res, start, end, brand, "pv");
+});
+
+router.get('/range/last-year-pv-group-month/:brand', function (req, res, next){ // 작년 오늘날짜부터 12개월 이전에 데이터를 월단위 그룹
+	var end = DateUtil.lastdayinlastyear();
+	var start = DateUtil.firstDayMonthLastYear(end);
+	var brand = req.params.brand;
+	
+	resRangeGroup(res, start, end, brand, "pv");
+});
+
+router.get('/range/this-year-perman-group-month/:brand', function (req, res, next){ // 금일부터 12개월 이전에 데이터를 월단위 그룹 
+	var end = DateUtil.lastday();
+	var start = DateUtil.firstDayMonthLastYear(end);
+	var brand = req.params.brand;
+	
+	resRangeGroup(res, start, end, brand, "perman");
+});
+
+router.get('/range/last-year-perman-group-month/:brand', function (req, res, next){ // 작년 오늘날짜부터 12개월 이전에 데이터를 월단위 그룹
+	var end = DateUtil.lastdayinlastyear();
+	var start = DateUtil.firstDayMonthLastYear(end);
+	var brand = req.params.brand;
+	
+	resRangeGroup(res, start, end, brand, "perman");
+});
+
+router.get('/range/this-year-buyer-group-month/:brand', function (req, res, next){ // 금일부터 12개월 이전에 데이터를 월단위 그룹 
+	var end = DateUtil.lastday();
+	var start = DateUtil.firstDayMonthLastYear(end);
+	var brand = req.params.brand;
+	
+	resRangeGroup(res, start, end, brand, "buyer");
+});
+
+router.get('/range/last-year-buyer-group-month/:brand', function (req, res, next){ // 작년 오늘날짜부터 12개월 이전에 데이터를 월단위 그룹
+	var end = DateUtil.lastdayinlastyear();
+	var start = DateUtil.firstDayMonthLastYear(end);
+	var brand = req.params.brand;
+	
+	resRangeGroup(res, start, end, brand, "buyer");
 });
 
 module.exports = router;
