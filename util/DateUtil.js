@@ -20,6 +20,15 @@ function getDataStr(myDate) {
 	return year + "-" + month + "-" + day;
 }
 
+DateUtil.getDate = function (myDate, number) {
+	var date = new Date(myDate);
+	
+	var dayOfMonth = date.getDate();
+	date.setDate(dayOfMonth + number);
+	
+	return getDataStr(date);
+}
+
 DateUtil.lastday = function (){ // 오늘보다 하루 전 날짜
 	var date = new Date();
 	var dayOfMonth = date.getDate();

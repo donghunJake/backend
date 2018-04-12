@@ -329,10 +329,11 @@ router.get('/range/last-month/:brand', function (req, res, next){
 
 router.get('/range/last-month-year/:brand', function (req, res, next){
 	var end = DateUtil.lastdayinlastyear();
+	var end1 = DateUtil.getDate(end, 7);
 	var start = DateUtil.lastmonth(end);
 	var brand = req.params.brand;
 	
-	resRangeSale(res, start, end, brand);
+	resRangeSale(res, start, end1, brand);
 });
 
 router.get('/range/this-year/:brand', function (req, res, next){
