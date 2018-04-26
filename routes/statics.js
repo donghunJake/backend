@@ -11,51 +11,69 @@ router.get('/:brand', function(req, res, next) {
 	var current = DateUtil.lastday();
 	var previous = DateUtil.lastdayinlastyear();
 	
+	var date = new Date();
+	var dayOfMonth = date.getDate();
+	date.setDate(dayOfMonth - 1);
+	
+	var firstDayThisYear = DateUtil.firstDayYear(date);
+	
+	var year = date.getFullYear();
+	date.setFullYear(year - 1);
+	var firstDayLastYear = DateUtil.firstDayYear(date);
+	
+	var thisYear = firstDayThisYear.substr(0,4);
+	var lastYear = firstDayLastYear.substr(0,4);
+	
+	console.log(firstDayThisYear, firstDayLastYear, thisYear, lastYear);
 	conn.query("select month, " +
-					"SUM(case when year = 2017 then sale end) as 'lastSale', " +
-					"SUM(case when year = 2018 then sale end) as 'currentSale', " +
-				    "SUM(case when year = 2017 then totalvisit end) as 'lastTotalvisit', " +
-					"SUM(case when year = 2018 then totalvisit end) as 'currentTotalvisit', " +
-				    "SUM(case when year = 2017 then firstvisit end) as 'lastFirstvisit', " +
-					"SUM(case when year = 2018 then firstvisit end) as 'currentFirstvisit', " +
-				    "SUM(case when year = 2017 then revisit end) as 'lastRevisit', " +
-					"SUM(case when year = 2018 then revisit end) as 'currentRevisit', " +
-				    "SUM(case when year = 2017 then newmember end) as 'lastNewmember', " +
-					"SUM(case when year = 2018 then newmember end) as 'currentNewmember', " +
-				    "SUM(case when year = 2017 then pv end) as 'lastPv', " +
-					"SUM(case when year = 2018 then pv end) as 'currentPv', " +
-				    "ROUND(AVG(case when year = 2017 then perman end)) as 'lastPerman', " +
-					"ROUND(AVG(case when year = 2018 then perman end)) as 'currentPerman', " +
-				    "ROUND(AVG(case when year = 2017 then buyer end),2) as 'lastBuyer', " +
-					"ROUND(AVG(case when year = 2018 then buyer end),2) as 'currentBuyer' " +
-				"FROM (select date_format(date, '%m') month, date_format(date, '%Y') as year, sale, totalvisit, firstvisit, revisit, newmember,pv, perman, buyer " +
-				"FROM statics where date between '2018-01-01' and ? and brand = ? " +
+					"SUM(case when year = " + lastYear + " then sale end) as 'lastSale', " +
+					"SUM(case when year = " + thisYear + " then sale end) as 'currentSale', " +
+					"SUM(case when year = " + lastYear + " then cancel end) as 'lastCancel', " + 
+                    "SUM(case when year = " + thisYear + " then cancel end) as 'currentCancel', " + 
+				    "SUM(case when year = " + lastYear + " then totalvisit end) as 'lastTotalvisit', " +
+					"SUM(case when year = " + thisYear + " then totalvisit end) as 'currentTotalvisit', " +
+				    "SUM(case when year = " + lastYear + " then firstvisit end) as 'lastFirstvisit', " +
+					"SUM(case when year = " + thisYear + " then firstvisit end) as 'currentFirstvisit', " +
+				    "SUM(case when year = " + lastYear + " then revisit end) as 'lastRevisit', " +
+					"SUM(case when year = " + thisYear + " then revisit end) as 'currentRevisit', " +
+				    "SUM(case when year = " + lastYear + " then newmember end) as 'lastNewmember', " +
+					"SUM(case when year = " + thisYear + " then newmember end) as 'currentNewmember', " +
+				    "SUM(case when year = " + lastYear + " then pv end) as 'lastPv', " +
+					"SUM(case when year = " + thisYear + " then pv end) as 'currentPv', " +
+				    "ROUND(AVG(case when year = " + lastYear + " then perman end)) as 'lastPerman', " +
+					"ROUND(AVG(case when year = " + thisYear + " then perman end)) as 'currentPerman', " +
+				    "ROUND(AVG(case when year = " + lastYear + " then buyer end),2) as 'lastBuyer', " +
+					"ROUND(AVG(case when year = " + thisYear + " then buyer end),2) as 'currentBuyer' " +
+				"FROM (select date_format(date, '%m') month, date_format(date, '%Y') as year, sale, cancel, totalvisit, firstvisit, revisit, newmember,pv, perman, buyer " +
+				"FROM statics where date between '" + firstDayThisYear + "' and ? and brand = ? " +
 				"UNION " +
-				"select date_format(date, '%m') month, date_format(date, '%Y') as year, sale, totalvisit, firstvisit, revisit, newmember,pv, perman, buyer " +
-				"from statics where date between '2017-01-01' and ? and brand = ?) as t group by month " +
+				"select date_format(date, '%m') month, date_format(date, '%Y') as year, sale, cancel, totalvisit, firstvisit, revisit, newmember,pv, perman, buyer " +
+				"from statics where date between '" + firstDayLastYear + "' and ? and brand = ?) as t group by month " +
 				"UNION " +
 				"select '합계',  " +
-					"SUM(case when year = 2017 then sale end) as 'lastSale', " +
-					"SUM(case when year = 2018 then sale end) as 'currentSale', " +
-				    "SUM(case when year = 2017 then totalvisit end) as 'lastTotalvisit', " +
-					"SUM(case when year = 2018 then totalvisit end) as 'currentTotalvisit', " +
-				    "SUM(case when year = 2017 then firstvisit end) as 'lastFirstvisit', " +
-					"SUM(case when year = 2018 then firstvisit end) as 'currentFirstvisit', " +
-				    "SUM(case when year = 2017 then revisit end) as 'lastRevisit', " +
-					"SUM(case when year = 2018 then revisit end) as 'currentRevisit', " +
-				    "SUM(case when year = 2017 then newmember end) as 'lastNewmember', " +
-					"SUM(case when year = 2018 then newmember end) as 'currentNewmember', " +
-				    "SUM(case when year = 2017 then pv end) as 'lastPv', " +
-					"SUM(case when year = 2018 then pv end) as 'currentPv', " +
-				    "ROUND(AVG(case when year = 2017 then perman end)) as 'lastPerman', " +
-					"ROUND(AVG(case when year = 2018 then perman end)) as 'currentPerman', " +
-				    "ROUND(AVG(case when year = 2017 then buyer end),2) as 'lastBuyer', " +
-					"ROUND(AVG(case when year = 2018 then buyer end),2) as 'currentBuyer' " +
-				"FROM (select '합계' total, date_format(date, '%Y') as year, sale, totalvisit, firstvisit, revisit, newmember,pv, perman, buyer " +
-				"FROM statics where date between '2018-01-01' and ? and brand = ? " +
+					"SUM(case when year = " + lastYear + " then sale end) as 'lastSale', " +
+					"SUM(case when year = " + thisYear + " then sale end) as 'currentSale', " +
+					"SUM(case when year = " + lastYear + " then cancel end) as 'lastCancel', " + 
+                    "SUM(case when year = " + thisYear + " then cancel end) as 'currentCancel', " +
+				    "SUM(case when year = " + lastYear + " then totalvisit end) as 'lastTotalvisit', " +
+					"SUM(case when year = " + thisYear + " then totalvisit end) as 'currentTotalvisit', " +
+				    "SUM(case when year = " + lastYear + " then firstvisit end) as 'lastFirstvisit', " +
+					"SUM(case when year = " + thisYear + " then firstvisit end) as 'currentFirstvisit', " +
+				    "SUM(case when year = " + lastYear + " then revisit end) as 'lastRevisit', " +
+					"SUM(case when year = " + thisYear + " then revisit end) as 'currentRevisit', " +
+				    "SUM(case when year = " + lastYear + " then newmember end) as 'lastNewmember', " +
+					"SUM(case when year = " + thisYear + " then newmember end) as 'currentNewmember', " +
+				    "SUM(case when year = " + lastYear + " then pv end) as 'lastPv', " +
+					"SUM(case when year = " + thisYear + " then pv end) as 'currentPv', " +
+				    "ROUND(AVG(case when year = " + lastYear + " then perman end)) as 'lastPerman', " +
+					"ROUND(AVG(case when year = " + thisYear + " then perman end)) as 'currentPerman', " +
+				    "ROUND(AVG(case when year = " + lastYear + " then buyer end),2) as 'lastBuyer', " +
+					"ROUND(AVG(case when year = " + thisYear + " then buyer end),2) as 'currentBuyer' " +
+				"FROM (select '합계' total, date_format(date, '%Y') as year, sale, cancel, totalvisit, firstvisit, revisit, newmember,pv, perman, buyer " +
+				"FROM statics where date between '" + firstDayThisYear + "' and ? and brand = ? " +
 				"UNION " +
-				"select '합계' total, date_format(date, '%Y') as year, sale, totalvisit, firstvisit, revisit, newmember,pv, perman, buyer " +
-				"FROM statics where date between '2017-01-01' and ? and brand = ?) as t group by total", 
+				"select '합계' total, date_format(date, '%Y') as year, sale, cancel, totalvisit, firstvisit, revisit, newmember,pv, perman, buyer " +
+				"FROM statics where date between '" + firstDayLastYear + "' and ? and brand = ?) as t group by total", 
 			[current, brand, previous, brand, current, brand, previous, brand], function(err, results) {
 		if(err){
 			console.log("Error : " + err);
@@ -66,6 +84,8 @@ router.get('/:brand', function(req, res, next) {
 			obj.month = results[i].month;
 			obj.lastSale = results[i].lastSale;
 			obj.currentSales = results[i].currentSale;
+			obj.lastCancel = results[i].lastCancel;
+			obj.currentCancel = results[i].currentCancel;
 			obj.lastTotalvisit = results[i].lastTotalvisit;
 			obj.currentTotalvisit = results[i].currentTotalvisit;
 			obj.lastFirstvisit = results[i].lastFirstvisit;
